@@ -1,4 +1,5 @@
 import { CacheType, ChannelType, Client, CommandInteraction, Message, SlashCommandAttachmentOption, SlashCommandBooleanOption, SlashCommandBuilder, SlashCommandChannelOption, SlashCommandIntegerOption, SlashCommandMentionableOption, SlashCommandNumberOption, SlashCommandRoleOption, SlashCommandStringOption, SlashCommandUserOption } from "discord.js"
+import { InteractionManager } from "./InteractionManager";
 
 export enum CommandParameterType {
   String,
@@ -232,7 +233,10 @@ export class Command {
   name: string;
   description: string|undefined;
   params: Array<CommandParameter>;
+
   execute(client: Client, interaction: CommandInteraction, parameters: Map<string, any>) {}
+
+  setupInteractions(manager: InteractionManager) {}
 
   constructor(name: string, description: string, params: Array<CommandParameter>) {
     this.name = name;
@@ -259,5 +263,9 @@ export class Command {
       options.set(option.name, option.getOptionValue(interaction));
     }
     this.execute(client, interaction, options);
+  }
+
+  interaction(name: string) {
+    return `${this.name}.${name}`;
   }
 }

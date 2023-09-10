@@ -3,12 +3,14 @@ import * as fs from "fs";
 
 import { CommandManager } from "./CommandManager";
 import { Command } from "./Command";
-import { BaseInteraction, Client, CommandInteraction, GatewayIntentBits } from "discord.js";
+import { BaseInteraction, ButtonInteraction, Client, CommandInteraction, GatewayIntentBits, Interaction } from "discord.js";
 import { Database, OPEN_CREATE, OPEN_READWRITE } from "sqlite3";
+import { InteractionManager } from "./InteractionManager";
 export { Command };
 
 export class DoubledeleteTS {
   commandManager: CommandManager;
+  interactionManager: InteractionManager;
 
   token: string;
   appid: string;
@@ -18,6 +20,7 @@ export class DoubledeleteTS {
   constructor(secretsFile: string) {
     let secrets = JSON.parse(fs.readFileSync(secretsFile).toString());
     this.commandManager = new CommandManager();
+    this.interactionManager = new InteractionManager();
     this.token = secrets["token"];
     this.appid = secrets["appid"];
     this.startupHandler = (_: Client) => {};
@@ -91,6 +94,12 @@ export class DoubledeleteTS {
         //
         // Global commands
         //
+
+        console.log(`Setting up global interactions`);
+        for (let command of this.commandManager.globalCommands) {
+          command.setupInteractions(this.interactionManager);
+        }
+
         await client.application?.commands.set(this.commandManager.globalCommands.map((x: Command) => x.builder()));
         console.log(`Registering ${this.commandManager.globalCommands.length} global commands`);
         
@@ -122,6 +131,13 @@ export class DoubledeleteTS {
 
         for (let guildID of guilds) {
           let guild = await client.guilds.fetch(guildID);
+
+          console.log(`Setting up interactions for guild "${guild}" (id ${guildID})`)
+          this.interactionManager.setContext(guildID);
+          for (let command of this.commandManager.guildCommands.get(guildID)!) {
+            command.setupInteractions(this.interactionManager);
+          }
+
           if (this.commandManager.guildCommands.has(guildID)) {
             console.log(`Registering ${this.commandManager.guildCommands.get(guildID)!.length} guild commands to guild "${guild}" (id ${guildID})`);
             await guild.commands.set(this.commandManager.guildCommands.get(guildID)!.map((x: Command) => x.builder()));
@@ -140,6 +156,7 @@ export class DoubledeleteTS {
 
     client.on('interactionCreate', async (interaction: BaseInteraction) => {
       if (interaction.isCommand()) {
+        // Slash commands
         let commandInteraction = interaction as CommandInteraction;
         // Look through registered commands and fire handlers
         // 1. Check global commands
@@ -152,14 +169,35 @@ export class DoubledeleteTS {
         // 2. Check guild commands
         let guildID = interaction.guildId;
         if (guildID && this.commandManager.guildCommands.has(guildID)) {
-          for (let command of this.commandManager.guildCommands.get(guildID!)!) {
+          for (let command of this.commandManager.guildCommands.get(guildID)!) {
             if (command.name == interaction.commandName) {
               command.handler(client, commandInteraction);
               return;
             }
           }
         }
-      }
+      } // if (isCommand)
+      else if (interaction.isButton()) {
+        // Interaction
+        console.log(interaction);
+        // 1. Check global interactions
+        for (let [name, handler] of this.interactionManager.globalInteractions) {
+          if (name == (interaction as ButtonInteraction).customId) {
+            handler(interaction);
+            return;
+          }
+        }
+        // 2. Check guild interactions
+        let guildID = interaction.guildId;
+        if (guildID && this.commandManager.guildCommands.has(guildID)) {
+          for (let [name, handler] of this.interactionManager.guildInteractions.get(guildID)!) {
+            if (name == (interaction as ButtonInteraction).customId) {
+              handler(interaction);
+              return;
+            }
+          }
+        }
+      } // else if (isButton || isStringSelectMenu)
     });
   }
 }
