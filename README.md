@@ -73,6 +73,56 @@ d.addGuildCommand(new myCommand(), "my_guild_id");
 d.run();
 ```
 
+### Adding parameters
+
+To add parameters to a command, we can put them into the `super` constructor call. We can create any `CommandParameter` type defined in [`Command.ts`](./doubledelete_ts/Command.ts). Let's take a look at a simple echo command:
+
+```typescript
+export class echoCommand extends Command {
+  constructor() {
+    super("echo", "sends back the message", [
+      new CommandStringParameter("message", "the message to echo", true)
+    ]);
+  }
+
+  async execute(client: Client, interaction: CommandInteraction, parameters: Map<string, any>) {
+    await interaction.reply(parameters.get('message'));
+  }
+}
+```
+
+Notice that `doubledelete.ts` automatically parses the parameters for us! Thus, we can look them up directly in `parameters`.
+
+### Using subcommands and subcommand groups
+
+To add subcommands and subcommand groups, we can simply add those to the array as well. Note that a command can only have children of one type: either parameters, subcommands, or subcommand groups. Let's take a look at an example of using subcommands ([`subcommand.ts`](./commands/subcommand.ts)):
+
+```typescript
+export class subcommandCommand extends Command {
+  constructor() {
+    super("subcommand", "Subcommand test", [
+      new Subcommand("one", "First subcommand", []),
+      new Subcommand("two", "Second subcommand", []),
+      new Subcommand("three", "Third subcommand", [
+        new CommandStringParameter("mystring", "A string", true)
+      ]),
+    ])
+  }
+
+  async execute(client: Client, interaction: CommandInteraction, parameters: Map<string, any>) {
+    if (this.isSubcommand(interaction, "one")) {
+      await interaction.reply("one?");
+    } else if (this.isSubcommand(interaction, "two")) {
+      await interaction.reply("two!");
+    } else if (this.isSubcommand(interaction, "three")) {
+      await interaction.reply(`three!!! you gave me the string ${parameters.get('mystring')}`);
+    }
+  }
+}
+```
+
+Notice that the definition of `Subcommand` is very similar to defining a `Command`: this is intentional! `Command` also provides an `isSubcommand` (and `isSubcommandGroup`) function to dtermine which branch of a command is being used. Notice that parameters are automatically extracted if necessary.
+
 ### Using the database
 
 `doubledelete.ts` provides access to a SQLite3 database via the global `doubledb` object. `doubledb` provides two functions:

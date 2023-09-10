@@ -1,4 +1,4 @@
-import { CacheType, ChannelType, Client, CommandInteraction, Message, SlashCommandAttachmentOption, SlashCommandBooleanOption, SlashCommandBuilder, SlashCommandChannelOption, SlashCommandIntegerOption, SlashCommandMentionableOption, SlashCommandNumberOption, SlashCommandRoleOption, SlashCommandStringOption, SlashCommandUserOption } from "discord.js"
+import { CacheType, ChannelType, Client, CommandInteraction, CommandInteractionOptionResolver, Message, SlashCommandAttachmentOption, SlashCommandBooleanOption, SlashCommandBuilder, SlashCommandChannelOption, SlashCommandIntegerOption, SlashCommandMentionableOption, SlashCommandNumberOption, SlashCommandRoleOption, SlashCommandStringOption, SlashCommandSubcommandBuilder, SlashCommandSubcommandGroupBuilder, SlashCommandUserOption } from "discord.js"
 import { InteractionManager } from "./InteractionManager";
 
 export enum CommandParameterType {
@@ -28,7 +28,7 @@ export class CommandParameter {
     this.required = required;
   }
 
-  addToBuilder(builder: SlashCommandBuilder) {
+  addToBuilder(builder: any) {
   }
 
   getOptionValue(interaction: CommandInteraction): any {
@@ -44,8 +44,8 @@ export class CommandStringParameter extends CommandParameter {
     this.maxLength = maxLength;
   }
 
-  addToBuilder(builder: SlashCommandBuilder) {
-    builder.addStringOption(option => {
+  addToBuilder(builder: any) {
+    builder.addStringOption((option: SlashCommandStringOption) => {
       option.setName(this.name);
       option.setDescription(this.description );
       option.setRequired(this.required);
@@ -69,8 +69,8 @@ export class CommandIntegerParameter extends CommandParameter {
     this.maxValue = maxValue;
   }
 
-  addToBuilder(builder: SlashCommandBuilder) {
-    builder.addIntegerOption(option => {
+  addToBuilder(builder: any) {
+    builder.addIntegerOption((option: SlashCommandIntegerOption) => {
       option.setName(this.name);
       option.setDescription(this.description );
       option.setRequired(this.required);
@@ -94,8 +94,8 @@ export class CommandNumberParameter extends CommandParameter {
     this.maxValue = maxValue;
   }
 
-  addToBuilder(builder: SlashCommandBuilder) {
-    builder.addNumberOption(option => {
+  addToBuilder(builder: any) {
+    builder.addNumberOption((option: SlashCommandNumberOption) => {
       option.setName(this.name);
       option.setDescription(this.description );
       option.setRequired(this.required);
@@ -115,8 +115,8 @@ export class CommandBooleanParameter extends CommandParameter {
     super(CommandParameterType.Boolean, name, description, required);
   }
 
-  addToBuilder(builder: SlashCommandBuilder) {
-    builder.addBooleanOption(option => {
+  addToBuilder(builder: any) {
+    builder.addBooleanOption((option: SlashCommandBooleanOption) => {
       option.setName(this.name);
       option.setDescription(this.description );
       option.setRequired(this.required);
@@ -134,8 +134,8 @@ export class CommandUserParameter extends CommandParameter {
     super(CommandParameterType.Boolean, name, description, required);
   }
 
-  addToBuilder(builder: SlashCommandBuilder) {
-    builder.addUserOption(option => {
+  addToBuilder(builder: any) {
+    builder.addUserOption((option: SlashCommandUserOption) => {
       option.setName(this.name);
       option.setDescription(this.description );
       option.setRequired(this.required);
@@ -154,8 +154,8 @@ export class CommandChannelParameter extends CommandParameter {
     super(CommandParameterType.Channel, name, description, required);
     this.channelTypes = channelTypes;
   }
-  addToBuilder(builder: SlashCommandBuilder): void {
-    builder.addChannelOption(option => {
+  addToBuilder(builder: any): void {
+    builder.addChannelOption((option: SlashCommandChannelOption) => {
       option.setName(this.name);
       option.setDescription(this.description );
       option.setRequired(this.required);
@@ -174,8 +174,8 @@ export class CommandRoleParameter extends CommandParameter {
     super(CommandParameterType.Role, name, description, required);
   }
 
-  addToBuilder(builder: SlashCommandBuilder) {
-    builder.addUserOption(option => {
+  addToBuilder(builder: any) {
+    builder.addUserOption((option: SlashCommandRoleOption) => {
       option.setName(this.name);
       option.setDescription(this.description );
       option.setRequired(this.required);
@@ -193,8 +193,8 @@ export class CommandMentionableParameter extends CommandParameter {
     super(CommandParameterType.Mentionable, name, description, required);
   }
 
-  addToBuilder(builder: SlashCommandBuilder) {
-    builder.addUserOption(option => {
+  addToBuilder(builder: any) {
+    builder.addUserOption((option: SlashCommandMentionableOption) => {
       option.setName(this.name);
       option.setDescription(this.description );
       option.setRequired(this.required);
@@ -213,8 +213,8 @@ export class CommandAttachmentParameter extends CommandParameter {
     super(CommandParameterType.Attachment, name, description, required);
   }
 
-  addToBuilder(builder: SlashCommandBuilder) {
-    builder.addUserOption(option => {
+  addToBuilder(builder: any) {
+    builder.addUserOption((option: SlashCommandAttachmentOption) => {
       option.setName(this.name);
       option.setDescription(this.description );
       option.setRequired(this.required);
@@ -227,21 +227,63 @@ export class CommandAttachmentParameter extends CommandParameter {
   }
 }
 
-// TODO: support for command groups!
-
-export class Command {
+export class Subcommand {
   name: string;
-  description: string|undefined;
+  description: string;
   params: Array<CommandParameter>;
-
-  execute(client: Client, interaction: CommandInteraction, parameters: Map<string, any>) {}
-
-  setupInteractions(manager: InteractionManager) {}
 
   constructor(name: string, description: string, params: Array<CommandParameter>) {
     this.name = name;
     this.description = description;
     this.params = params;
+  }
+  
+  addToBuilder(builder: any) {
+    builder.addSubcommand((subcommand: SlashCommandSubcommandBuilder) => {
+      subcommand.setName(this.name).setDescription(this.description);
+      for (let parameter of this.params) {
+        parameter.addToBuilder(subcommand);
+      }
+      return subcommand;
+    });
+  }
+}
+
+export class SubcommandGroup {
+  name: string;
+  description: string;
+  subcommands: Array<Subcommand>;
+
+  constructor(name: string, description: string, subcommands: Array<Subcommand>) {
+    this.name = name;
+    this.description = description;
+    this.subcommands = subcommands;
+  }
+  
+  addToBuilder(builder: any) {
+    builder.addSubcommandGroup((group: SlashCommandSubcommandGroupBuilder) => {
+      group.setName(this.name).setDescription(this.description);
+      for (let subcommand of this.subcommands) {
+        subcommand.addToBuilder(group);
+      }
+      return group;
+    });
+  }
+}
+
+export class Command {
+  name: string;
+  description: string|undefined;
+  children: Array<CommandParameter> | Array<Subcommand> | Array<SubcommandGroup>;
+
+  execute(client: Client, interaction: CommandInteraction, parameters: Map<string, any>) {}
+
+  setupInteractions(manager: InteractionManager) {}
+
+  constructor(name: string, description: string, children: Array<CommandParameter> | Array<Subcommand> | Array<SubcommandGroup>) {
+    this.name = name;
+    this.description = description;
+    this.children = children;
   }
 
   builder() {
@@ -250,7 +292,7 @@ export class Command {
     if (this.description) {
       builder.setDescription(this.description);
     }
-    for (let parameter of this.params) {
+    for (let parameter of this.children) {
       parameter.addToBuilder(builder);
     }
 
@@ -259,13 +301,48 @@ export class Command {
 
   handler(client: Client, interaction: CommandInteraction) {
     let options: Map<string, any> = new Map();
-    for (let option of this.params) {
-      options.set(option.name, option.getOptionValue(interaction));
+
+    if (this.children.length === 0 || this.children.at(0)! instanceof CommandParameter) {
+      for (let child of this.children) {
+        options.set(child.name, (child as CommandParameter)!.getOptionValue(interaction));
+      }
+      this.execute(client, interaction, options);
+    } else if (this.children.at(0)! instanceof Subcommand) {
+      for (let subcommand of this.children as Array<Subcommand>) {
+        if (subcommand.name === (interaction.options as CommandInteractionOptionResolver).getSubcommand(true)) {
+          for (let child of subcommand.params) {
+            options.set(child.name, (child as CommandParameter)!.getOptionValue(interaction));
+          }
+          this.execute(client, interaction, options);
+          return;
+        }
+      }
+    } else if (this.children.at(0)! instanceof SubcommandGroup) {
+      for (let subcommandGroup of this.children as Array<SubcommandGroup>) {
+        if (subcommandGroup.name === (interaction.options as CommandInteractionOptionResolver).getSubcommandGroup(true)) {
+          for (let subcommand of subcommandGroup.subcommands as Array<Subcommand>) {
+            if (subcommand.name === (interaction.options as CommandInteractionOptionResolver).getSubcommand(true)) {
+              for (let child of subcommand.params) {
+                options.set(child.name, (child as CommandParameter)!.getOptionValue(interaction));
+              }
+              this.execute(client, interaction, options);
+              return;
+            }
+          }
+        }
+      }
     }
-    this.execute(client, interaction, options);
   }
 
   interaction(name: string) {
     return `${this.name}.${name}`;
+  }
+
+  isSubcommand(interaction: CommandInteraction, subcommand: string) {
+    return (interaction.options as CommandInteractionOptionResolver).getSubcommand() === subcommand;
+  }
+
+  isSubcommandGroup(interaction: CommandInteraction, subcommandGroup: string) {
+    return (interaction.options as CommandInteractionOptionResolver).getSubcommandGroup() === subcommandGroup;
   }
 }

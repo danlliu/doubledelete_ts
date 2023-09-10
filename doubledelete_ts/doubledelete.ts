@@ -2,12 +2,14 @@
 import * as fs from "fs";
 
 import { CommandManager } from "./CommandManager";
-import { Command, CommandParameter, CommandAttachmentParameter, CommandBooleanParameter, CommandChannelParameter, CommandIntegerParameter, CommandMentionableParameter, CommandNumberParameter, CommandRoleParameter, CommandStringParameter, CommandUserParameter } from "./Command";
+import { Command, Subcommand, SubcommandGroup, CommandParameter, CommandAttachmentParameter, CommandBooleanParameter, CommandChannelParameter, CommandIntegerParameter, CommandMentionableParameter, CommandNumberParameter, CommandRoleParameter, CommandStringParameter, CommandUserParameter } from "./Command";
 import { BaseInteraction, ButtonInteraction, Client, CommandInteraction, GatewayIntentBits, Interaction } from "discord.js";
 import { Database, OPEN_CREATE, OPEN_READWRITE } from "sqlite3";
 import { InteractionManager } from "./InteractionManager";
 export { 
   Command, 
+  Subcommand,
+  SubcommandGroup,
 
   CommandParameter,
   CommandAttachmentParameter,
