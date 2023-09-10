@@ -1,4 +1,4 @@
-import { DoubledeleteTS, doubledb } from "./doubledelete_ts/doubledelete";
+import { DoubledeleteTS } from "./doubledelete_ts/doubledelete";
 
 import { helloCommand } from "./commands/hello";
 import { echoCommand } from "./commands/echo";
@@ -12,7 +12,6 @@ const TEST = '1150109878745038880'; // dbft2
 
 let d = new DoubledeleteTS(".secrets.json");
 d.onStartup((client: Client) => {
-  doubledb.run(`CREATE TABLE IF NOT EXISTS notes ( id INTEGER PRIMARY KEY AUTOINCREMENT, text VARCHAR(256) )`)
   console.log("Here we go");
 });
 d.addGlobalCommand(new helloCommand());

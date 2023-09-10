@@ -1,5 +1,5 @@
 import { Client, CommandInteraction, Message } from "discord.js";
-import { Command, CommandStringParameter } from "../doubledelete_ts/Command";
+import { Command, CommandStringParameter } from "../doubledelete_ts/doubledelete";
 
 export class echoCommand extends Command {
   constructor() {

@@ -1,6 +1,5 @@
 import { Client, CommandInteraction, CacheType, ActionRowBuilder, ButtonBuilder, Interaction, ButtonStyle, ButtonInteraction } from "discord.js";
-import { Command, CommandStringParameter } from "../doubledelete_ts/Command";
-import { InteractionManager } from "../doubledelete_ts/InteractionManager";
+import { Command, CommandStringParameter, InteractionManager } from "../doubledelete_ts/doubledelete";
 
 export class buttonCommand extends Command {
   constructor() {

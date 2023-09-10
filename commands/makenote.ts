@@ -1,6 +1,5 @@
 import { Client, CommandInteraction, CacheType } from "discord.js";
-import { Command, CommandStringParameter } from "../doubledelete_ts/Command";
-import { doubledb } from "../doubledelete_ts/doubledelete";
+import { Command, CommandStringParameter, doubledb } from "../doubledelete_ts/doubledelete";
 
 export class makeNoteCommand extends Command {
   constructor() {
