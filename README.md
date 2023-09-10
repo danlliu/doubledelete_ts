@@ -98,30 +98,51 @@ Notice that `doubledelete.ts` automatically parses the parameters for us! Thus, 
 To add subcommands and subcommand groups, we can simply add those to the array as well. Note that a command can only have children of one type: either parameters, subcommands, or subcommand groups. Let's take a look at an example of using subcommands ([`subcommand.ts`](./commands/subcommand.ts)):
 
 ```typescript
-export class subcommandCommand extends Command {
+
+class subcommandOne extends Subcommand {
   constructor() {
-    super("subcommand", "Subcommand test", [
-      new Subcommand("one", "First subcommand", []),
-      new Subcommand("two", "Second subcommand", []),
-      new Subcommand("three", "Third subcommand", [
-        new CommandStringParameter("mystring", "A string", true)
-      ]),
-    ])
+    super("one", "First subcommand", []);
   }
 
   async execute(client: Client, interaction: CommandInteraction, parameters: Map<string, any>) {
-    if (this.isSubcommand(interaction, "one")) {
-      await interaction.reply("one?");
-    } else if (this.isSubcommand(interaction, "two")) {
-      await interaction.reply("two!");
-    } else if (this.isSubcommand(interaction, "three")) {
-      await interaction.reply(`three!!! you gave me the string ${parameters.get('mystring')}`);
-    }
+    await interaction.reply("one?");
+  }
+}
+
+class subcommandTwo extends Subcommand {
+  constructor() {
+    super("two", "Second subcommand", []);
+  }
+
+  async execute(client: Client, interaction: CommandInteraction, parameters: Map<string, any>) {
+    await interaction.reply("two!");
+  }
+}
+
+class subcommandThree extends Subcommand {
+  constructor() {
+    super("three", "Third subcommand", [
+      new CommandStringParameter("mystring", "A string", true)
+    ]);
+  }
+
+  async execute(client: Client, interaction: CommandInteraction, parameters: Map<string, any>) {
+    await interaction.reply(`three!!! you gave me the string ${parameters.get('mystring')}`);
+  }
+}
+
+export class subcommandCommand extends Command {
+  constructor() {
+    super("subcommand", "Subcommand test", [
+      new subcommandOne(),
+      new subcommandTwo(),
+      new subcommandThree(),
+    ])
   }
 }
 ```
 
-Notice that the definition of `Subcommand` is very similar to defining a `Command`: this is intentional! `Command` also provides an `isSubcommand` (and `isSubcommandGroup`) function to dtermine which branch of a command is being used. Notice that parameters are automatically extracted if necessary.
+Notice that the definition of `Subcommand` is very similar to defining a `Command`: this is intentional! `Command` also automatically determines which subcommand is being used and handles parameters accordingly, without having to do any conditional branching!
 
 ### Using the database
 

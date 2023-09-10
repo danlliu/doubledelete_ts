@@ -232,6 +232,8 @@ export class Subcommand {
   description: string;
   params: Array<CommandParameter>;
 
+  execute(client: Client, interaction: CommandInteraction, parameters: Map<string, any>) {}
+
   constructor(name: string, description: string, params: Array<CommandParameter>) {
     this.name = name;
     this.description = description;
@@ -313,7 +315,7 @@ export class Command {
           for (let child of subcommand.params) {
             options.set(child.name, (child as CommandParameter)!.getOptionValue(interaction));
           }
-          this.execute(client, interaction, options);
+          subcommand.execute(client, interaction, options);
           return;
         }
       }
@@ -325,7 +327,7 @@ export class Command {
               for (let child of subcommand.params) {
                 options.set(child.name, (child as CommandParameter)!.getOptionValue(interaction));
               }
-              this.execute(client, interaction, options);
+              subcommand.execute(client, interaction, options);
               return;
             }
           }
