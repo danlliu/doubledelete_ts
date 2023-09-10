@@ -339,12 +339,4 @@ export class Command {
   interaction(name: string) {
     return `${this.name}.${name}`;
   }
-
-  isSubcommand(interaction: CommandInteraction, subcommand: string) {
-    return (interaction.options as CommandInteractionOptionResolver).getSubcommand() === subcommand;
-  }
-
-  isSubcommandGroup(interaction: CommandInteraction, subcommandGroup: string) {
-    return (interaction.options as CommandInteractionOptionResolver).getSubcommandGroup() === subcommandGroup;
-  }
 }
